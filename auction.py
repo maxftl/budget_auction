@@ -6,7 +6,7 @@ import networkx
 DUMMY_ITEM = -1
 
 def getRestrictedDemandSet(valuation, price, budget, permited):
-    utilities = [v-p for i,(v,p) in enumerate(zip(valuation,price)) if p <= budget and i in permited]
+    utilities = [v-p if p <= budget and i in permited else -1 for i,(v,p) in enumerate(zip(valuation,price))]
     max_utility = max(utilities) if len(utilities) > 0 else 0
     if max_utility < 0:
         return set([DUMMY_ITEM])
