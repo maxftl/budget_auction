@@ -3,22 +3,7 @@ from collections import deque
 from itertools import combinations
 import networkx
 
-# Input
-valuations = [
-    [3],
-    [2]
-]
-
-budgets = [1,5]
-
-# Helper functions
 DUMMY_ITEM = -1
-num_bidders = len(valuations)
-num_goods = len(valuations[0])
-
-bidders = list(range(num_bidders))
-goods = list(range(num_goods))
-
 
 def getRestrictedDemandSet(valuation, price, budget, permited):
     utilities = [v-p for i,(v,p) in enumerate(zip(valuation,price)) if p <= budget and i in permited]
@@ -37,7 +22,7 @@ def isOverdemanded(demandSets, setOfGoods):
             i += 1
     return i > len(setOfGoods)
 
-def getMinimallyOverdemandedSet(demandSets):
+def getMinimallyOverdemandedSet(demandSets, goods):
     for card in range(1,len(demandSets) + 1):
         for subset in combinations(goods, card):
             subset = set(subset)
@@ -51,10 +36,10 @@ def findBidderWithDemandJump(oldDemands, newDemands):
             return (i,old.difference(new))
     return (-1,None)
 
-def auctionStep(valuations, prices, budgets, permited_items):
+def auctionStep(valuations, prices, budgets, permited_items, goods):
     demandSets = [getRestrictedDemandSet(valuation, prices, budget, permited)
                   for valuation, budget, permited in zip(valuations,budgets,permited_items)]
-    minimallyOverdemanded = getMinimallyOverdemandedSet(demandSets)
+    minimallyOverdemanded = getMinimallyOverdemandedSet(demandSets, goods)
     if minimallyOverdemanded is None:
         return (prices, permited_items, True)
     newPrices = prices.copy()
@@ -69,7 +54,7 @@ def auctionStep(valuations, prices, budgets, permited_items):
         permited_items[bidderAtLimit] = permited_items[bidderAtLimit].difference(excludedGoods)
         return (prices, permited_items, False)
     
-def getAllocation(demandSets, prices):
+def getAllocation(demandSets, prices, bidders, goods):
     graph = networkx.DiGraph()
     source = (-1,-1)
     sink = (2,2)
@@ -92,23 +77,27 @@ def getAllocation(demandSets, prices):
     return result
 
 
-def runAuction():
+def runAuction(valuations, budgets):
+    num_bidders = len(valuations)
+    num_goods = len(valuations[0])
+
+    bidders = list(range(num_bidders))
+    goods = list(range(num_goods))
     permited_items = [
         set(goods) for _ in range(num_bidders)
     ]
     prices = [0] * num_goods
     while True:
-        (prices, permited_items, done) = auctionStep(valuations, prices, budgets, permited_items)
+        (prices, permited_items, done) = auctionStep(valuations, prices, budgets, permited_items, goods)
         if done:
             break
     demandSets = [getRestrictedDemandSet(valuation, prices, budget, permited)
                   for valuation, budget, permited in zip(valuations,budgets,permited_items)]
-    allocation = getAllocation(demandSets, prices)
+    allocation = getAllocation(demandSets, prices, bidders, goods)
     return {
         'prices': prices,
         'allocation': allocation
     }
 
-
-auctionResult = runAuction()
-print(auctionResult)
+if __name__ == '__main__':
+    print(runAuction([[13]],[4]))
