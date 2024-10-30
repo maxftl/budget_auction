@@ -60,3 +60,15 @@ def test_two_bidders_two_goods_budget():
     assert(outcome['allocation'][0] == 0)
     assert(outcome['allocation'][1] == 1) 
 
+def test_example_5_from_paper():
+    valuations = [
+        [100,0],
+        [100,100],
+        [0,100]
+    ]
+    budgets = [100,50,1]
+    outcome = runAuction(valuations, budgets)
+    assert(outcome['prices'] == [1,1])
+    assert(outcome['allocation'][0] == 0)
+    assert(outcome['allocation'][1] == 1)
+    assert(outcome['allocation'][2] == DUMMY_ITEM)
